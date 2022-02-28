@@ -1,0 +1,90 @@
+from collections import namedtuple
+import csv
+import os
+import sqlite3
+import sys
+from sqlite3 import Error
+ciclo = True
+lista_ventas = []
+subtotal=0
+diccionario = {}
+d = 0 
+total=0
+Venta = namedtuple("Venta", ("folio","fecha","descripcion","cantidad","precio","subtotal","total"))
+
+while ciclo:
+    print("\n---------REGISTRAR UNA VENTA---------")
+    print("1.- Registrar venta")
+    print("2.- Buscar venta")
+    print("3.- Reporte de ventas para una fecha especifica")
+    print("4.- Salir")
+    menu = int(input())
+    print("\n-------------------------------------")
+    if menu == 1:
+        print("\n-----------Registrar-----------")
+        folio = int(input("Numero de folio: "))
+        fecha = input("Fecha de la venta dd/mm/aaaa: ")
+        
+        descripcion = input("Descripción del articulo:")
+        while descripcion == "":
+            print ("ingresa una descripción valida, por favor")
+            descripcion = input("descripción del articulo:")
+        
+        cantidad = input("Cantidad de piezas vendidas: ")
+        auxiliar2 = int(cantidad)
+        cero=0
+        while (auxiliar2 <= cero):
+            print("Ingresa una cantidad valida, por favor")
+            cantidad = input("cantidad de piezas vendidas:")
+            auxiliar2= int(cantidad)
+            
+        precio = input("Precio de ventas: ")
+        auxiliar1= int(precio)
+        cero= 0
+        while (auxiliar1 <= cero):
+            print("ingrese un precio valido, por favor")
+            precio = input("precio de ventas:")
+            auxiliar1= int(precio)
+            
+        subtotal= auxiliar1*auxiliar2
+        total= ((subtotal*0.16) + subtotal)
+        venta_registrada = Venta(folio,fecha,descripcion,cantidad,precio,subtotal,total)
+        lista_ventas.append(venta_registrada)
+    with open('ventas.csv','w',newline='') as archivo:
+        exportado = csv.writer(archivo)
+        exportado.writerow((folio,descripcion,cantidad,precio,total))
+        exportado.writerows([(folio, datos.descripcion, cantidad, precio) for folio, datos in diccionario.items()])
+        print(f'\nExportado exitoso en {os.getcwd()}')
+        print("\n-------------------------------------")
+    if menu == 2:
+        folio = input("Ingrese el folio que desees buscar: ")
+        for elemento in lista_ventas:
+            print(f"La descripcion del articulo es: {elemento.descripcion} ")
+            print(f"Cantidad de piezas vendidas: {elemento.cantidad} ")
+            print(f"Precio de ventas: {elemento.precio} ")
+            print(f"Subtotal compra: {elemento.subtotal} ")
+            print(f"Total con IVA: {elemento.total} ")
+            print()
+            try: 
+                with sqlite3.connect('rticulos.db') as conn:
+                    c=conn.cursor()
+                    c.execute("INSERT INTO Venta VALUES (?)",(folio,))
+                    for elemnto in d:
+                        if folio == elemento.folio:
+                            c.execute("INSERT INTO Articulo VALUES(?,?,?,?,?,?)",(elemento.descripcion,elemento.cantidad,elemento.precio,fecha,total,subtotal,folio))
+            except Error as e:
+                print(e)
+            except Exception:
+                print(f'hay un error: : {sys.exc_info()[0]}')
+                
+    elif menu == 3:
+        fecha = input('Introduzca la fecha de la venta a buscar: ')
+        for elemento in lista_ventas:
+            print(f'La descripcion del articulo es: {elemento.descripcion}' )
+            print(f"Cantidad de piezas vendidas: {elemento.cantidad} ")
+            print(f"Precio de ventas: {elemento.precio} ")
+            print(f"Subtotal compra: {elemento.subtotal} ")
+            print(f"Total con IVA: {elemento.total} ")
+    elif menu == 4:
+        print("Saliendo")
+        break
